@@ -4,6 +4,7 @@ import java.util.List;
 public class Main {
 
 	private static int globalCounter = 0;
+	private static final Object obj = new Object();
 	
 	public static void main(String[] args) {
 		List<Thread> threads = new ArrayList<>();
@@ -39,8 +40,14 @@ public class Main {
 				
 			}
 			
-			globalCounter++;
+			synchronized (obj) {
+				globalCounter++;
+			}
+			
 		}
 
+	}
+	
+	private static synchronized void increment() {
 	}
 }
