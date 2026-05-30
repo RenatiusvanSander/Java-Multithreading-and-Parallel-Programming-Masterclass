@@ -24,10 +24,10 @@ public class Main {
 
 	public static void main(String[] args) {
 		Queue<String> queue = new LinkedList<>();
-		
+
 		Thread producer = new Thread(new Producer(queue));
 		Thread consumer = new Thread(new Consumer(queue));
-		
+
 		producer.start();
 		consumer.start();
 	}
@@ -57,12 +57,15 @@ public class Main {
 					System.out.println("In producer, waiting...");
 					queue.wait();
 				}
-				
-				Thread.sleep(1000);
+
+				Thread.sleep(700);
 
 				System.out.println("Producing data with id " + queue.size());
 				queue.add("element_" + queue.size());
-				queue.notify();
+
+				if (queue.size() == 1) {
+					queue.notify();
+				}
 			}
 		}
 
@@ -93,13 +96,15 @@ public class Main {
 					System.out.println("Consumer is waiting...");
 					queue.wait();
 				}
-				
+
 				Thread.sleep(700);
-				
+
 				String data = queue.remove();
 				System.out.println("Consumed data: " + data);
-				
-				queue.notify();
+
+				if (queue.size() == 9) {
+					queue.notify();
+				}
 			}
 		}
 	}
