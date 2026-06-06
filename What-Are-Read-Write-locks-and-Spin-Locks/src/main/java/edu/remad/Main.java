@@ -14,6 +14,18 @@ public class Main {
 	private static List<Integer> list = new ArrayList<>();
 
 	public static void main(String[] args) {
+		Thread writer = new Thread(new WriterThread());
+
+		Thread reader1 = new Thread(new ReaderThread());
+		Thread reader2 = new Thread(new ReaderThread());
+		Thread reader3 = new Thread(new ReaderThread());
+		Thread reader4 = new Thread(new ReaderThread());
+
+		writer.start();
+		reader1.start();
+		reader2.start();
+		reader3.start();
+		reader4.start();
 	}
 
 	static class WriterThread implements Runnable {
@@ -30,23 +42,25 @@ public class Main {
 		}
 
 		private void writeData() throws InterruptedException {
-			Thread.sleep(10000);
+			Thread.sleep(1000);
 			writeLock.lock();
-			
-			int value = (int) Math.random();
+
+			int value = (int) Math.random() * 10;
 			System.out.println("Producing data: " + value);
 			
+			Thread.sleep(3000);
+
 			list.add(value);
-			
+
 			writeLock.unlock();
 		}
 	}
-	
+
 	static class ReaderThread implements Runnable {
 
 		@Override
 		public void run() {
-			while(true) {
+			while (true) {
 				try {
 					readData();
 				} catch (InterruptedException e) {
@@ -56,15 +70,25 @@ public class Main {
 		}
 
 		private void readData() throws InterruptedException {
-			Thread.sleep(4000);
+			Thread.sleep(3000);
 			
+			while(true) {
+				boolean acquired = readLock.tryLock();
+				
+				if(acquired) {
+					break;
+				} else {
+					System.out.println("Waiting for readLock ...");
+				}
+			}
+
 			readLock.lock();
-			
+
 			System.out.println("List is: " + list);
-			
+
 			readLock.unlock();
 		}
-		
+
 	}
 
 }
