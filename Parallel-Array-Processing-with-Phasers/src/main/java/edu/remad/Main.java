@@ -1,19 +1,50 @@
 package edu.remad;
 
 import java.util.concurrent.BrokenBarrierException;
-import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.Phaser;
 
 public class Main {
 
+	private static int s = 0;
+	private static int[] array = new int[] { 1, 2, 3, 4, 5, 6, 7, 8 };
+	private static Phaser phaser = new Phaser(1);
+
 	public static void main(String[] args) throws InterruptedException, BrokenBarrierException {
-		Phaser phaser = new Phaser();
-		CyclicBarrier barrier = new CyclicBarrier(4);
+		for(int i = 0; i < array.length; i++) {
+			Thread t = new Thread(new WorkerThread(i));
+			t.start();			
+		}
 		
-		barrier.await();
-		
-		phaser.register();
 		phaser.arriveAndAwaitAdvance();
+		phaser.arriveAndAwaitAdvance();
+		
+		System.out.println("The sum is: " + s);
+		System.out.println("Phase count: " + phaser.getPhase());
 	}
 	
+	static class WorkerThread implements Runnable {
+		
+		private final int threadIndex;
+		
+		public WorkerThread(int threadIndex) {
+			this.threadIndex = threadIndex;
+			phaser.register();
+		}
+		
+		@Override
+		public void run() {
+			array[threadIndex] = array[threadIndex] * 2;
+			phaser.arriveAndAwaitAdvance();
+			
+			if(threadIndex == 0) {
+				for(int j : array) {
+					s = s + j;
+				}
+				phaser.arriveAndAwaitAdvance();
+			} else {
+				phaser.arriveAndDeregister();
+			}
+		}
+	}
+
 }
